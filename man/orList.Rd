@@ -2,21 +2,28 @@
 % Please edit documentation in R/AggFunctions.R
 \name{orList}
 \alias{orList}
-\title{Obtaining an OR syntax to use two and more query lists}
+\title{Obtaining an OR query to combine two and more query elements}
 \usage{
-orList(query_prep = list())
+orList(query_prep = c())
 }
 \arguments{
-\item{query_prep}{A list of other queris stored}
+\item{query_prep}{one or more query vectors created by other query functions.
+if query vectors are more than one than \code{c()} should be used for lising within the function.}
 }
 \value{
-Or query syntax
+A list of several query elements corresponding to a particular data table
 }
 \description{
-This function retuns the syntax to combine several query lists
+This function retuns  a list of a combination two or more query elements.
+}
+\note{
+Please make sure that specifying the same data table in all query element functions to avoid errors \cr
+This query may build a large data set that could cause the data size issue in a Windows machine.
 }
 \examples{
-# If you want to combine stored query blocks such as q or f,
-and_query <- andList(list(q,f))
-
+\dontrun{# to subset real-time data with the constraint of a time range and a dyad
+t <- returnTimes("phoenix_rt", "20171015", "20171215")
+dyad <- returnDyad('Phoexnix_rt', 'RUS', 'SYR')
+# building an OR-query of a certain time and the country dyad
+or_query <- orList(c(t,dyad)) # it requires a large memory size to retrieve the data set}
 }

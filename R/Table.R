@@ -1,29 +1,27 @@
-#' A reference class to apply a given API key to extracting functions in this package
+#' A reference class to apply an API key to the other functions in this package
 #'
 #'@description  Once a referece class is set, a user does not need to repeatedly put an API key into a function.
-#'An API key can be obtained after filling out the form in the UTD event data sign-up website (\url{http://eventdata.utdallas.edu/signup}).
+#'An API key can be obtained after submitting an API request form in the sign-up website (\url{http://eventdata.utdallas.edu/signup}).
 #'Please follow the direction in the \href{http://149.165.156.33:5002/signup}{UTD sign-up webpage}.
-#'@name Table
-#'@field api_key An API key obtained from the \href{http://149.165.156.33:5002/signup}{UTD sign-up webpage}
+#'@name Table-class
+#'@field utd_api_key A character vector
+#'@import methods
 #'@export Table
 #'@exportClass Table
-#'@examples # Creating an object
+#'@examples \dontrun{# creating an object
 #'obj<-Table$new()
-#'
-#'# Setting an object of an API key
+#'# setting an object of an API key
 #'obj$setAPIKey("....")
-#'
-#'# Once the object of an API is set, a user no need to repeat typing an API key to use the subsetting functions
+#'# once the object of an API is set, a user no need to repeat typing an API key
 #'obj$DataTable()  # returns the available data tables in the UTD server
-#'
-#'# when a user wants to subset real-time data ('phoenix_rt) from 20171101 to 20171102 on MEX(Mexico)
-#'obj$pullData("Phoenix_rt", list("MEX"),start="20171101", end="20171102")
+#'# to subset real-time data ('phoenix_rt') from 20171101 to 20171102 on MEX (Mexico)
+#'obj$pullData("Phoenix_rt", list("MEX"),start="20171101", end="20171102")}
 
 Table <- setRefClass("Table",
-                     fields = list (api_key = "character"),
+                     fields = list (utd_api_key = "character"),
                      methods = list(
                        setAPIKey = function(key) {
-                         api_key <<- key
+                         utd_api_key <<- key
                        },
                        pullData = function(table_name, country, start, end) {
                          "This is the main function to extract subdata from
@@ -83,7 +81,7 @@ Table <- setRefClass("Table",
                            query_string = relabel(query_string, "icews")
                          }
                          # getting data from url formatting
-                         url_submit = paste(url_submit,url, api_key,'&query=', query_string, sep='','&datasource=',table_name)
+                         url_submit = paste(url_submit,url, utd_api_key,'&query=', query_string, sep='','&datasource=',table_name)
                          url_submit = gsub('"',"%22",url_submit, fixed=TRUE)
                          url_submit = gsub(' ',"%20",url_submit, fixed=TRUE)
                          retrieved_data <- readLines(url_submit, warn=FALSE)
@@ -97,7 +95,7 @@ Table <- setRefClass("Table",
                          \\subsection{Return Value}{a list of a data table}"
                          # constructing a url
                          url = 'http://149.165.156.33:5002/api/datasources?api_key='
-                         url_submit = paste(url,api_key,sep='')
+                         url_submit = paste(url,utd_api_key,sep='')
                          # getting table names
                          TableList <- readLines(url_submit, warn=FALSE)
                          List<-gsub(".*\\[(.*)\\].*", "\\1", TableList)
@@ -120,9 +118,9 @@ Table <- setRefClass("Table",
                          url = 'http://149.165.156.33:5002/api/fields?datasource='
 
                          # searching variables in different data tables
-                         if (tb=='phoenix_rt' || tb=='icews' || tb=='cline_phoenix_swb' || tb=='cline_phoenix_fbis' || tb=='cline_phoenix_nyt'){
+                         if (tb=='phoenix_rt' || tb=='icews' || tb=='cline_phoenix_swb' || tb=='cline_phoenix_fbis' || tb=='cline_phoenix_nyt' || tb=="terrier"){
 
-                           url_submit = paste(url,tb,'&api_key=',api_key,sep='')
+                           url_submit = paste(url,tb,'&api_key=',utd_api_key,sep='')
 
                            # getting variable names
                            VarList <- readLines(url_submit, warn=FALSE)

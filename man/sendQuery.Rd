@@ -2,29 +2,35 @@
 % Please edit documentation in R/AggFunctions.R
 \name{sendQuery}
 \alias{sendQuery}
-\title{Sending queries to the API server}
+\title{Sending queries to the UTD API server in order to download data with a built query}
 \usage{
-sendQuery(api_key = "", table_name = "", query = list(),
+sendQuery(utd_api_key = NULL, table_name = "", query = list(),
   citation = TRUE)
 }
 \arguments{
-\item{api_key}{An API key provided by a server manager at UTD}
+\item{utd_api_key}{An API key provided by a server manager at UTD}
 
-\item{table_name}{A name of a data table a user specifies. Your input is NOT
-case-sensitive.}
+\item{table_name}{A name of a data table. Input strings are NOT case-sensitive.}
 
-\item{query}{List of queries a user builds with othter aggretation functions.
-The defualt is TRUE, and you can trun it off by adding FALSE in the option.}
+\item{query}{A list of query elements or a single query element a user builds with other query functions.}
 
-\item{citation}{The option for printing a package citation at the end of data retrival.}
+\item{citation}{logical; If \code{TRUE}, then a package citation will be printed at the end of data retrival.}
 }
 \value{
-A data set with the R-package citation
+A list with components
+    \itemize{
+         \item{}{\code{$data    }   a data frame of requested data. An attribute of the data can be formatted as data.frame. Please check the features of data if it's necessary}
+         \item{}{\code{$citation}   a text of the package citation}
+          }
 }
 \description{
-This function retruns the data a user requests by a query compositions of
-aggretation functions
+This function retruns the data and a package citation
+}
+\note{
+If an error message is returned, please increase the memory size of R. This error is more
+frequently occurred in a Windows machine.
 }
 \examples{
-sendQuery(api_key,"icews",and_query)
+\dontrun{ # to store the ICEWS subset in the vector of myData without the citation
+myData <- sendQuery(utd_api_key,"icews", query_element, citation = FALSE)}
 }

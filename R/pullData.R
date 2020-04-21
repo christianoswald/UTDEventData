@@ -1,21 +1,26 @@
 #################################################################
 #############    A Main function of subsetting ##################
 #############    Combined by Kate Kim          ##################
-#############    Last update: 4/18/2018        ##################
+#############    Last update: Apr. 2019        ##################
 #################################################################
 #' Extracting event data from the UTD real-time event data server.
 #' @description This is the main function to extract subdata from the UTD Event data server by country names and time ranges.
 #'              The API key is required and can be obtained after filling out the form in the UTD event data sign-up website (\url{http://eventdata.utdallas.edu/signup}).
-#'              Please follow the direction in the \href{http://149.165.156.33:5002/signup}{UTD sign-up webpage}. \cr
+#'              Please follow the direction in the \href{http://149.165.156.33:5002/signup}{UTD sign-up webpage}.\cr
 #'              You can also use this function through the reference class, \code{Table()}.
 #'              Please find the help document of the \code{Table()} function for more details for its usage.
-#' @return extracted event data from a specifed data table
+#' @return A list with components
+#'     \itemize{
+#'          \item{}{\code{$data    }   a data frame of requested data. An attribute of the data can be formatted as data.frame. Please check the features of data if it's necessary}
+#'          \item{}{\code{$citation}    a text of the package citation}
+#'           }
 #' @importFrom jsonlite fromJSON
 #' @importFrom countrycode countrycode
 #' @importFrom rjson toJSON
+#' @importFrom curl curl
 #' @export
-#' @examples pullData(api_key=" ", table_name="Phoenix_rt", country=list("USA","MEX","SYR","CHN"),
-#'  start="20171101", end="20171112")
+#' @examples \dontrun{pullData(utd_api_key=" ", table_name="Phoenix_rt", country=list("USA","MEX","SYR","CHN"),
+#'  start="20171101", end="20171112", citation = TRUE)
 #'
 #'  ## Another way to avoid repeating an API key into the function
 #'  k <- '...api key...'
@@ -24,18 +29,22 @@
 #'  subset3 <- pullData(k, 'cline_Phoenix_NYT',list('South Korea','canada'), '19551105','19581215')
 #'
 #'  ## Data retreval without the citation
-#'  pullData(k, "phoenix_rt", list("USA"), "20171115", "20171120", citation = FALSE)
-#' @param api_key An API key provided by the server manager at UTD.
+#'  pullData(k, "phoenix_rt", list("USA"), "20171115", "20171120", citation = FALSE)}
+#' @param utd_api_key An API key provided by the server manager at UTD.
 #' @param table_name The name of data table you want to have. You may find available data tables from DataTables( )
 #' @param country List of countries. We recommend to use the \href{https://unstats.un.org/unsd/tradekb/knowledgebase/country-code}{ISO ALPHA-3 Code} format, but
 #' the full country name is also working in this function.\cr
 #'      e.g. either \code{list("USA","CAN")} or \code{list("United States", "Canada")} are working and not case-sensitive.
-#' @param start The "YYYYMMDD" format of the first date of a data set.
-#' @param end The "YYYYMMDD" format of the end date of a data set.
-#' @param citation The option for printing a package citation at the end of data retrival.
-#' The defualt is TRUE, and you can trun it off by adding FALSE in the option.
+#' @param start The "YYYYMMDD" format of the first date of a data set
+#' @param end The "YYYYMMDD" format of the end date of a data set
+#' @param citation logical; If \code{TRUE}, then a package citation will be printed at the end of data retrival.
+#' The default is TRUE, and you can turn it off by adding FALSE in the option.
+#'
+pullData<-function(utd_api_key=NULL, table_name=" ", country=list(), start=" ", end=" ", citation = TRUE){
+    # if (is.null(utd_api_key)) utd_api_key <- Sys.getenv("UTDAPIKEY", unset=NA)
+    # if (is.null(utd_api_key)) print("No API key set. Instructions on how to set the API key are available in the documentation.")
 
-pullData<-function(api_key=" ", table_name=" ", country=list(), start=" ", end=" ", citation = TRUE){
+    table_name = tolower(table_name)
 
     ISO = TRUE
 
@@ -47,26 +56,39 @@ pullData<-function(api_key=" ", table_name=" ", country=list(), start=" ", end="
       }
 
     if(ISO == TRUE) {
-      if(table_name == "icews"|| table_name== 'cline_phoenix_swb' || table_name=="cline_phoenix_nyt" || table_name=='cline_phoenix_fbis')
+      if(table_name == "icews"){
         for(i in 1:length(country))
-          country[[i]] = countrycode::countrycode(country[[i]],"iso3c", "country.name")
+          country[[i]] = countrycode::countrycode(country[[i]],"iso3c", "country.name") }
+
+      else if(table_name == "terrier") {
+          for(i in 1:length(country))
+            country[[i]] = countrycode::countrycode(country[[i]], "iso3c", "iso2c")  }
     }
 
     else {
-       if(table_name != "icews")
+       if((table_name == "phoenix_rt") || (table_name== 'cline_phoenix_swb') || (table_name=="cline_phoenix_nyt") ||
+              (table_name=='cline_phoenix_fbis')) {
          for(i in 1:length(country))
-          country[[i]] = countrycode::countrycode(country[[i]],"country.name", "iso3c")
-         }
+          country[[i]] = countrycode::countrycode(country[[i]],"country.name", "iso3c") }
+
+       else if(table_name == "terrier") {
+           for(i in 1:length(country))
+           country[[i]] = countrycode::countrycode(country[[i]], "country.name", "iso2c") }
+
+       }
 
     if(table_name == "icews") {
       start = paste(substr(start,1,4),"-",substr(start,5,6),"-",substr(start,7,8),sep="")
       end = paste(substr(end,1,4),"-",substr(end,5,6),"-",substr(end,7,8),sep="")
     }
 
-  country_constraint = list('<country_code>'= list('$in'= country))
+    if(substr(table_name,1,5)=="cline") {
+      start = paste(substr(start,1,4),"/",substr(start,5,6),"/",substr(start,7,8),sep="")
+      end = paste(substr(end,1,4),"/",substr(end,5,6),"/",substr(end,7,8),sep="")
+    }
 
+    country_constraint = list('<country_code>'= list('$in'= country))
     date_constraint = list('<date>'=list('$gte'=start,'$lte'=end))
-
     all_constraints = list(country_constraint, date_constraint)
     query = list('$and'=all_constraints)
     # Convert the data structure into a string
@@ -74,21 +96,25 @@ pullData<-function(api_key=" ", table_name=" ", country=list(), start=" ", end="
     query_string = gsub("\\", '', rjson::toJSON(query), fixed=TRUE)
     url <- 'http://149.165.156.33:5002/api/data?api_key='
     url_submit = ''
-    table_name = tolower(table_name)
     if (table_name=="phoenix_rt" ) {
       query_string = relabel(query_string, "phoenix_rt")
     }
-    else if (table_name== 'cline_phoenix_swb' || table_name=="cline_phoenix_nyt"|| table_name=='cline_phoenix_fbis'){
+    else if ((table_name== 'cline_phoenix_swb') | (table_name=='cline_phoenix_nyt') | (table_name=='cline_phoenix_fbis')){
       query_string = relabel(query_string, "cline")
     }
     else if(table_name == "icews") {
       query_string = relabel(query_string, "icews")
     }
+    else if(table_name == "terrier"){
+      query_string = relabel(query_string, "terrier")
+    }
     # getting data from url formatting
-    url_submit = paste(url_submit,url, api_key,'&query=', query_string, sep='','&datasource=',table_name)
+    url_submit = paste(url_submit,url, utd_api_key, '&query=', query_string, sep='','&datasource=',table_name)
     url_submit = gsub('"',"%22",url_submit, fixed=TRUE)
     url_submit = gsub(' ',"%20",url_submit, fixed=TRUE)
-    retrieved_data <- readLines(url_submit, warn=FALSE)
+    # print(url_submit)
+    retrieved_data <- readLines(curl::curl(url_submit), warn=FALSE)
+    closeAllConnections()
     parsed_data <- jsonlite::fromJSON(retrieved_data)$data
 
     if (citation) {

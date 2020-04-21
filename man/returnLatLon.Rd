@@ -2,25 +2,26 @@
 % Please edit documentation in R/AggFunctions.R
 \name{returnLatLon}
 \alias{returnLatLon}
-\title{Creating the location boundaries with longitudes and lattidues}
+\title{Creating a geo-location query element with longitudes and lattidues}
 \usage{
 returnLatLon(lat1, lat2, lon1, lon2)
 }
 \arguments{
-\item{lat1}{the minimum value of lattitude of a target boundary}
+\item{lat1}{the minimum value of lattitude of a geo-location boundary}
 
-\item{lat2}{the maximum value of latitidue of a target boundary}
+\item{lat2}{the maximum value of latitidue of a geo-location boundary}
 
-\item{log1}{the minimum value of longitude of a target boundary}
+\item{lon1}{the minimum value of longitude of a geo-location boundary}
 
-\item{log2}{the maximum value of longitude of a target boundary}
+\item{lon2}{the maximum value of longitude of a geo-location boundary}
 }
 \value{
-A vector of queary syntax of latidues and longitudes
+A list of geo-location query elements
 }
 \description{
-This function returns a vector of query syntax for geo-locations
+This function returns a list of a query element of geo-locations
 }
 \examples{
-q <- returnLatLon(-80,30,20,80)
+\dontrun{# to build a location constraint with the ranges of latitudes the longitudes
+geo <- returnLatLon(-10,30,40,70)}
 }

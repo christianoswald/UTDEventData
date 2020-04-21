@@ -2,28 +2,35 @@
 % Please edit documentation in R/AggFunctions.R
 \name{returnRegExp}
 \alias{returnRegExp}
-\title{Obtaining a regular expression for API queries based on a specified data table}
+\title{Building a query element, which indicates a certain pattern of variables in a particular data table}
 \usage{
-returnRegExp(api_key = "", table_name = "", pattern = "", field = "")
+returnRegExp(utd_api_key = "", table_name = "", pattern = "",
+  field = "")
 }
 \arguments{
-\item{api_key}{An API key provided by a UTD server manager}
+\item{utd_api_key}{An API key provided by a UTD server manager}
 
-\item{table_name}{A name of a data table a user specifies. Your input is NOT
-case-sensitive.}
+\item{table_name}{A name of a data table. Input strings are NOT case-sensitive.}
 
-\item{pattern}{A pattern of an actor in events}
+\item{pattern}{A pattern or a feature of a specified variable}
 
-\item{field}{A field of a data table}
+\item{field}{A field (variable) of a data table}
 }
 \value{
-JSON query syntax
+A list of the query element of a certain pattern of a particular variable in a data table
 }
 \description{
-This function retuns general query syntax for sepcfied data table
+This function creates a query element to indicate a certain pattern of a variable
+}
+\note{
+Please use this function only with the field that is not used in the other query element function.
+For instance; if you subset the data with a certain country, use the function, `returnCountries()`.
 }
 \examples{
-# when a user wants to get all source actors related to governments
-f <- returnRegExp( k, "icews","GOV","Source Name")
-
+\dontrun{
+# to get all source actors related to governments in ICEWS
+reg <- returnRegExp(utd_api_key, "icews","GOV","Source Name")
+# to subset the cline_phoenix_nyt data by year == 2001
+nytQuery <- returnRegExp(utd_api_key, 'cline_phoenix_nyt', '2001', 'year')
+myNYTdata <- sendQuery(utd_api_key, 'cline_phoenix_nyt', nytQuery, citation = F)}
 }
